@@ -1,0 +1,10 @@
+[project]
+name = "fedvad"
+version = "0.1.0"
+description = "Federated video anomaly detection on UCSD Ped1/Ped2 with FedAvg"
+requires-python = ">=3.11"
+dependencies = [
+    "matplotlib>=3.11.2",
+    "scikit-learn>=1.9.1",
+    "torch>=2.14.1",
+]
