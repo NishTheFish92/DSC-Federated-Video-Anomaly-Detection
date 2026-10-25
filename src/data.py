@@ -39,10 +39,28 @@ def load_clip(clip_dir):
     return torch.from_numpy(np.stack(frames)).unsqueeze(1)
 
 
-def train_loader(site_dir):
-    """Shuffled DataLoader over every frame of the site's normal training clips."""
-    frames = torch.cat([load_clip(d) for d in clip_dirs(site_dir / "Train")])
+def stack_frames(frames, length):
+    """(N, 1, H, W) clip -> (N - length + 1, length, H, W): every run of `length` consecutive frames."""
+    if length == 1:
+        return frames
+    return frames[:, 0].unfold(0, length, 1).permute(0, 3, 1, 2)
+
+
+def clips_loader(dirs, stack=1):
+    """Shuffled DataLoader over the given training clips (stacks never cross clip boundaries)."""
+    frames = torch.cat([stack_frames(load_clip(d), stack) for d in dirs])
     return DataLoader(TensorDataset(frames), batch_size=BATCH_SIZE, shuffle=True)
+
+
+def train_loader(site_dir, stack=1):
+    """Shuffled DataLoader over every frame of the site's normal training clips."""
+    return clips_loader(clip_dirs(site_dir / "Train"), stack)
+
+
+def client_loaders(site_dir, n_clients):
+    """Split one site's training clips into n_clients contiguous groups, one DataLoader each."""
+    dirs = clip_dirs(site_dir / "Train")
+    return [clips_loader(list(group)) for group in np.array_split(dirs, n_clients)]
 
 
 def anomaly_ranges(site_dir):

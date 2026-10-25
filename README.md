@@ -9,13 +9,22 @@ error is its anomaly score. Compared against a centralised baseline by frame-lev
 # 1. Data (~700 MB) into data/
 mkdir -p data && curl -L http://www.svcl.ucsd.edu/projects/anomaly/UCSD_Anomaly_Dataset.tar.gz | tar -xz -C data
 
-# 2. Quick shape check on 2 clips per split (seconds)
+# 2. Quick shape check on 4 clips per split (seconds)
 QUICK=1 uv run run_federated.py && QUICK=1 uv run run_centralized.py
 
 # 3. Full experiment (~1 min each on a GTX 1650 Ti)
 uv run run_federated.py
 uv run run_centralized.py   # also prints the comparison table and saves the plot
 ```
+Paper experiments (after step 3):
+```bash
+uv run run_experiments.py            # Table 2 (seeds 42-46), Figure 2 data, Table 3 (seeds 42-44); ~1 h
+uv run run_experiments.py --summary  # reprint the tables, CIs and TOST from results/experiments.json
+uv run run_inversion.py              # gradient-inversion check on Site 2 (Figure 4), a few minutes
+```
+Table 3 covers FedProx, more clients (each site split into 2 or 4 clients), two clients filming the same
+scene, and 8-frame stacks as input. Settings for all of these live in `src/config.py`.
+
 On Colab: install uv with `!curl -LsSf https://astral.sh/uv/install.sh | sh`, then run the same commands from the project folder.
 
 ## Results (seed 42, 10 rounds x 3 local epochs, 64x64 frames)
